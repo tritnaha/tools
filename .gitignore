@@ -1,0 +1,9 @@
+# Separate cloned projects that happen to live under ~/tools — NOT part of this repo
+/GhydraMCP/
+/ghidra-mcp/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
