@@ -70,6 +70,65 @@ Get-Help .\Get-FolderSizes.ps1 -Full                            # built-in help
 
 ---
 
+## `windows/Show-DiskUsage.ps1`
+
+**What it does** — An **ncdu-style interactive disk-usage explorer** for Windows. An
+arrow-key TUI walks the directory tree and shows each entry with a size, a relative
+bar, percent-of-parent, and a **classification tag** that tells you *what it is*:
+`[app data]`, `[cache - clearable]`, `[re-downloadable]`, `[user data - keep]`,
+`[system - careful]`, `[downloads]`, `[project]`, `[junction/symlink - not followed]`.
+You can also delete from inside it.
+
+**How it works (short)** — Native PowerShell. Sizes are total recursive bytes,
+measured with an iterative walk that **never follows NTFS reparse points**
+(junctions/symlinks), so junction loops can't cause infinite recursion. Each
+directory's child sizes are computed once and cached, so navigating/redrawing never
+rescans. Classification is a data-driven, priority-ordered rule table matched on name
++ path. Deletion defaults to the **Recycle Bin** (reversible). A `-Dump` mode prints
+the same classified tree non-interactively — and runs automatically when there's no
+interactive console (so it's pipe-friendly).
+
+**Keys (TUI)**
+
+| Key | Action | | Key | Action |
+|-----|--------|---|-----|--------|
+| ↑ / ↓ | move selection | | `d` | delete → Recycle Bin (confirm) |
+| → / Enter | drill into folder | | Shift+`D` | permanent delete (type `DELETE`) |
+| ← / Backspace | up to parent | | `r` | rescan current dir |
+| Home / End | first / last | | `g` | toggle showing files |
+| PageUp / PageDown | scroll a page | | `h` / `?` | help |
+| `q` / Esc | quit | | | |
+
+**Flags**
+
+| Flag | Default | Meaning |
+|------|---------|---------|
+| `-Path <dir>` | system drive root (`C:\`) | Where to start. A file resolves to its parent folder. |
+| `-Dump` | off | Print a classified, size-sorted tree once and exit (no TUI). |
+| `-MaxDepth <n>` | `2` | Depth for `-Dump` / the no-console fallback. |
+| `-ShowFiles` | off | Start with files shown alongside folders (toggle later with `g`). |
+
+**Examples**
+
+```powershell
+.\Show-DiskUsage.ps1                                              # explore C:\ interactively
+.\Show-DiskUsage.ps1 -Path 'C:\Users\charlie'                     # explore your profile
+.\Show-DiskUsage.ps1 -Path 'C:\Users\charlie' -Dump -MaxDepth 3   # non-interactive classified tree
+```
+
+**Safety** — Delete defaults to the Recycle Bin (reversible) with a confirmation.
+It hard-refuses to delete drive roots, `C:\Windows`, Program Files / Program Files
+(x86), ProgramData, any user-profile root, `$Recycle.Bin`, System Volume Information,
+the page/hibernation/swap files, and reparse points. Permanent delete requires
+Shift+`D` **and** typing `DELETE`; if the Recycle Bin API can't load it refuses to
+delete rather than hard-deleting.
+
+> Run it from the local `C:\Users\charlie\tools` copy (or right-click → **Run with
+> PowerShell**), not the `\\wsl.localhost` path — same execution-policy reason as
+> `Get-FolderSizes.ps1`.
+
+---
+
 ## `linux/disk-cleanup.sh`
 
 **What it does** — Project-aware disk reporter **and** safe reclaimer for the WSL
