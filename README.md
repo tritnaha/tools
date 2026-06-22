@@ -21,14 +21,31 @@ Organized by where each script **runs**:
 
 **What it does** — Lists the biggest sub-folders of one or more paths, by total
 recursive size, as a clean table. The everyday "what's eating my disk?" tool for
-the Windows side.
+the Windows side. Run it with **no arguments** (double-click, or right-click →
+**Run with PowerShell**) and it shows an **interactive menu** of common scans and
+pauses before closing; pass any flag to skip the menu and scan directly.
 
 **How it works (short)** — Native PowerShell. For each `-Path`, it enumerates the
 immediate child folders, sums every file underneath each one
 (`Get-ChildItem -Recurse -File`), rounds to GB, sorts descending and prints a
 table. Reads NTFS directly, so it's far faster than running `du` over the WSL
 `/mnt/c` (9p) mount. Hidden/system items are included; locked/denied items are
-skipped (counted as 0).
+skipped (counted as 0). With zero parameters on an interactive console it opens
+the menu (Show-Menu); otherwise it runs directly.
+
+**Interactive menu** (no-arg / right-click launch) — pick what to scan:
+
+| Option | Scans |
+|--------|-------|
+| 1 | Your user profile (`$env:USERPROFILE`) |
+| 2 | The whole `C:\` drive |
+| 3 | `AppData\Local` |
+| 4 | The Temp folder, loose files included |
+| 5 | A folder you type in |
+| Q | Quit |
+
+It then asks how many rows to show (default 15), prints the table, and loops back
+to the menu until you quit — so the window never just flashes shut.
 
 **Flags**
 
